@@ -2,3 +2,17 @@ pkg/
 api.key
 *-handin.tar.gz
 .idea/
+*.iml
+.vscode
+
+/output*/
+/_output*/
+/_output
+
+/log
+**/logs/*
+
+!idl/ad/feiyu/*
+cbt.lock
+
+idl
