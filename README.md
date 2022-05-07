@@ -37,3 +37,16 @@ ADVENTURES 7
 AFTER 2
 AGREE 16
 ```
+全部输出就到了`mr-out-0`文档中了
+
+`go build -buildmode=plugin ../mrapps/wc.go` 该命令的作用是构建`wc.go`的动态链接库，`wc.go`实现了Map函数和Reduce函数，但是Map和Reduce随时都会改变，所以采用这种动态链接的方式，将其编译为`wc.so`文件。
+
+所以我们用命令行运行，将`wc.so`文件带上的时候就会加载最新的打包好代码了。
+```go
+mapf, reducef := loadPlugin(os.Args[1])
+```
+同时在`mrapps`目录中都实现了`map, reduce`的函数，所以goLand中会报错。。。。如果我们想用其他文件的map和reduce函数就可以直接打包成'*.so'文件。
+
+这样就做到了模块的解耦。
+
+`mrsequential.go`实现的非分布式的，具体实现很简单：文章提取单词，调用wc.so的Map函数返回一个数组，数组元素为<word1, 1>对，然后排序，然后同样的单词会挨在一起，这样就能某个单词收集到一个数组传到list即可，然后将list传到Reduce函数，最后返回的结果写入文件即可。
