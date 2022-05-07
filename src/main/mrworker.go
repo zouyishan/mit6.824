@@ -1,5 +1,13 @@
 package main
 
+import (
+	"fmt"
+	"github.com/mit6.824/src/mr"
+	"log"
+	"os"
+	"plugin"
+)
+
 //
 // start a worker process, which is implemented
 // in ../mr/worker.go. typically there will be
@@ -9,12 +17,6 @@ package main
 //
 // Please do not change this file.
 //
-
-import "../mr"
-import "plugin"
-import "os"
-import "fmt"
-import "log"
 
 func main() {
 	if len(os.Args) != 2 {

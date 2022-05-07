@@ -5,9 +5,10 @@ package mr
 //
 // remember to capitalize all names.
 //
-
-import "os"
-import "strconv"
+import (
+	"os"
+	"strconv"
+)
 
 //
 // example to show how to declare the arguments
@@ -22,8 +23,23 @@ type ExampleReply struct {
 	Y int
 }
 
-// Add your RPC definitions here.
+type MapResponse struct {
+	// 是否已经处理完了。
+	IsEnd bool
+	// 可能和MaxFileNum请求的数量不一样。
+	// 因为没有被mapreduce的文件没有那么多了。
+	// 也可能为null，但是IsEnd没有被标记为true之前，还是要请求。
+	ContentMap map[string]string
+}
 
+type MapRequest struct {
+	// 最大的文件请求数，默认为2。
+	MaxFileNum int
+	// 处理完的文件
+	Handled []string
+}
+
+// Add your RPC definitions here.
 
 // Cook up a unique-ish UNIX-domain socket name
 // in /var/tmp, for the master.

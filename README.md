@@ -1,8 +1,7 @@
-# mit6.824
-6.824实验
-
-记录菜的坑
 # Lab1
+
+实验指导手册：https://pdos.csail.mit.edu/6.824/labs/lab-mr.html
+## 单机mapreduce
 ```bash
 cd src/main
 go run mrsequential.go wc.so pg*.txt
@@ -50,3 +49,10 @@ mapf, reducef := loadPlugin(os.Args[1])
 这样就做到了模块的解耦。
 
 `mrsequential.go`实现的非分布式的，具体实现很简单：文章提取单词，调用wc.so的Map函数返回一个数组，数组元素为<word1, 1>对，然后排序，然后同样的单词会挨在一起，这样就能某个单词收集到一个数组传到list即可，然后将list传到Reduce函数，最后返回的结果写入文件即可。
+
+## 分布式mapreduce
+首先看下实验手册的描述：
+> The workers will talk to the coordinator via RPC. Each worker process will ask the coordinator for a task, read the task's input from one or more files, execute the task, and write the task's output to one or more files.
+
+worker通过RPC拉取任务，然后执行这些任务，输出一个或多个文件。
+

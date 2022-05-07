@@ -27,5 +27,5 @@ func main() {
 		time.Sleep(time.Second)
 	}
 
-	time.Sleep(time.Second)
+	fmt.Println("master run success!")
 }
