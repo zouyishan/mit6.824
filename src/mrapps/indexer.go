@@ -5,13 +5,13 @@ package main
 //
 // go build -buildmode=plugin indexer.go
 //
-
-import "fmt"
-import "../mr"
-
-import "strings"
-import "unicode"
-import "sort"
+import (
+	"fmt"
+	"github.com/mit6.824/src/mr"
+	"sort"
+	"strings"
+	"unicode"
+)
 
 // The mapping function is called once for each piece of the input.
 // In this framework, the key is the name of the file that is being processed,

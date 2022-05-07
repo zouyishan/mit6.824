@@ -6,13 +6,14 @@ package main
 //
 // go build -buildmode=plugin rtiming.go
 //
-
-import "../mr"
-import "fmt"
-import "os"
-import "syscall"
-import "time"
-import "io/ioutil"
+import (
+	"fmt"
+	"github.com/mit6.824/src/mr"
+	"io/ioutil"
+	"os"
+	"syscall"
+	"time"
+)
 
 func nparallel(phase string) int {
 	// create a file so that other workers will see that
