@@ -1,5 +1,12 @@
 package main
 
+import (
+	"fmt"
+	"github.com/mit6.824/src/mr"
+	"os"
+	"time"
+)
+
 //
 // start the master process, which is implemented
 // in ../mr/master.go
@@ -8,11 +15,6 @@ package main
 //
 // Please do not change this file.
 //
-
-import "../mr"
-import "time"
-import "os"
-import "fmt"
 
 func main() {
 	if len(os.Args) < 2 {
