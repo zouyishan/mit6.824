@@ -70,12 +70,13 @@ func Worker(mapf func(string, string) []KeyValue,
 
 	// 本地创建对应进程的文件
 	createFile()
-	doMap(mapf)
-	doReduce(reducef)
+	DoMap(mapf)
+	CallExample()
+	DoReduce(reducef)
 	fmt.Printf("end pid: %v\n", os.Getpid())
 }
 
-func doMap(mapf func(string, string) []KeyValue) error {
+func DoMap(mapf func(string, string) []KeyValue) error {
 	resp := MapResponse{
 		IsEnd: false,
 	}
@@ -138,44 +139,46 @@ func doMap(mapf func(string, string) []KeyValue) error {
 	return nil
 }
 
-func doReduce(reducef func(string, []string) string) error {
-	resp := ReduceResponse{
+func DoReduce(reducef func(string, []string) string) error {
+	response := ReduceResponse{
 		IsEnd: false,
 	}
 	fmt.Printf("开始执行Reduce了\n")
-	for resp.IsEnd == false {
-		req := ReduceRequest{
-			Id:         os.Getpid(),
+	for response.IsEnd == false {
+		request := ReduceRequest{
 			MaxFileNum: 1,
+			Id:         os.Getpid(),
 		}
-		call("Master.ReduceTask", &req, &resp)
-		fmt.Printf("返回的参数是：%v\n", resp)
-		if resp.IsEnd == true || len(resp.fileNames) == 0 {
-			return nil
+		request.HandleID = response.HandId
+		call("Master.ReduceTask", &request, &response)
+
+		fmt.Printf("返回的response参数是：%v\n", response)
+		if response.IsEnd == true || len(response.FileNames) == 0 {
+			break
 		}
-		req.HandleID = resp.handId
+		fmt.Printf("handleId:%v\n", request.HandleID)
 
 		// 实际上只有一个, 遍历是为了留作扩展用。
 		var res []KeyValue
-		for i := range resp.fileNames {
-			for j := range resp.ids {
-				fileName := strconv.Itoa(resp.ids[j])
+		for i := range response.FileNames {
+			for j := range response.Ids {
+				fileName := strconv.Itoa(response.Ids[j])
 				fileName += "/"
-				fileName += resp.fileNames[i]
-				fmt.Printf("文件名称是：%v", fileName)
+				fileName += response.FileNames[i]
+				fmt.Printf("文件名称是：%v\n", fileName)
 				file, err := os.Open(fileName)
 				if err != nil {
-					fmt.Printf("g了 打开文件失败了, %v", err)
+					fmt.Printf("g了 打开文件失败了, %v\n", err)
 				}
 				br := bufio.NewReader(file)
 				for {
 					line, b, err := br.ReadLine()
 					if err != nil {
-						fmt.Printf("g了 读取行失败了, %v", err)
+						fmt.Printf("g了 读取行失败了, %v\n", err)
 						break
 					}
 					if b {
-						fmt.Printf("g了 一行的字节太多了, %v", err)
+						fmt.Printf("g了 一行的字节太多了, %v\n", err)
 					}
 					var temp KeyValue
 					str := strings.Fields(string(line))
@@ -186,11 +189,12 @@ func doReduce(reducef func(string, []string) string) error {
 				file.Close()
 			}
 		}
-		sort.Sort(ByKey(res))
 
+		sort.Sort(ByKey(res))
+		fmt.Printf("res size: %v\n", len(res))
 		oName := "mr-out-"
 		oName += strconv.Itoa(os.Getpid())
-		oName += resp.fileNames[0]
+		oName += response.FileNames[0]
 		oFile, _ := os.Create(oName)
 		i := 0
 		for i < len(res) {
@@ -208,8 +212,8 @@ func doReduce(reducef func(string, []string) string) error {
 			fmt.Fprintf(oFile, "%v %v\n", res[i].Key, output)
 
 			i = j
-			oFile.Close()
 		}
+		oFile.Close()
 	}
 	return nil
 }
@@ -250,12 +254,13 @@ func call(rpcname string, args interface{}, reply interface{}) bool {
 		log.Fatal("dialing:", err)
 	}
 	defer c.Close()
-
+	fmt.Printf("rpcName: %v, args: %v, reply: %v\n", rpcname, args, reply)
 	err = c.Call(rpcname, args, reply)
-	if err == nil {
-		return true
+	if err != nil {
+		fmt.Printf("error: %v\n", err)
+		fmt.Printf("返回值是：%v\n", reply)
+		return false
 	}
 
-	fmt.Println(err)
-	return false
+	return true
 }

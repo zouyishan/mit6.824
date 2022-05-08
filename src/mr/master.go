@@ -59,34 +59,7 @@ func (m *Master) Example(args *ExampleArgs, reply *ExampleReply) error {
 	return nil
 }
 
-// ReduceTask
-// 计算map后的结果
-func (m *Master) ReduceTask(req *ReduceRequest, resp *ReduceResponse) error {
-	fmt.Printf("m.nReduce:%v m.reduceExecuted:%v req:%v\n", m.nReduce, m.reduceExecuted, req)
-
-	if len(req.HandleID) > 0 {
-		for i := range req.HandleID {
-			fmt.Printf("reduce executed: %v", i)
-			m.reduceState[req.HandleID[i]] = 2
-			m.reduceExecuted++
-		}
-	}
-
-	if m.reduceExecuted == m.nReduce {
-		resp.IsEnd = true
-		return nil
-	}
-
-	resp.fileNames = make([]string, 0)
-	resp.ids = m.ids
-	m.mutex.Lock()
-	fmt.Printf("===开始执行函数reduceExecute: %v\n", resp)
-	m.reduceExecute(req, resp)
-	fmt.Printf("然后的resp是: %v\n", resp)
-	m.mutex.Unlock()
-	return nil
-}
-
+// 判重
 func isRepeat(arr []int, x int) bool {
 	if len(arr) == 0 {
 		return false
@@ -97,6 +70,31 @@ func isRepeat(arr []int, x int) bool {
 		}
 	}
 	return false
+}
+
+// ReduceTask
+// 计算map后的结果
+func (m *Master) ReduceTask(request *ReduceRequest, response *ReduceResponse) error {
+	fmt.Printf("m.nReduce:%v m.reduceExecuted:%v req:%v\n", m.nReduce, m.reduceExecuted, request)
+
+	if len(request.HandleID) > 0 {
+		for i := range request.HandleID {
+			fmt.Printf("reduce executed: %v", i)
+			m.reduceState[request.HandleID[i]] = 2
+			m.reduceExecuted++
+		}
+	}
+
+	if m.reduceExecuted == m.nReduce {
+		response.IsEnd = true
+		return nil
+	}
+	response.Ids = m.ids
+
+	fmt.Printf("===开始执行函数reduceExecute: %v\n", response)
+	m.reduceExecute(request, response)
+	fmt.Printf("然后的resp是: %v\n", response)
+	return nil
 }
 
 // MapTask
@@ -129,6 +127,7 @@ func (m *Master) MapTask(req *MapRequest, resp *MapResponse) error {
 	m.mutex.Lock()
 	m.mapExecute(req, resp)
 	m.mutex.Unlock()
+	fmt.Printf("执行以后：%v\n", len(resp.ContentMap))
 	return nil
 }
 
@@ -162,24 +161,25 @@ func (m *Master) mapExecute(req *MapRequest, resp *MapResponse) {
 	}
 }
 
-func (m *Master) reduceExecute(req *ReduceRequest, resp *ReduceResponse) error {
+func (m *Master) reduceExecute(request *ReduceRequest, response *ReduceResponse) {
 	if m.nReduce == m.reduceExecuted {
-		resp.IsEnd = true
-		return nil
+		response.IsEnd = true
+		return
 	}
+
 	countTask := 0
 	fmt.Printf("开始发送文件\n")
-	for i := 0; i < len(m.reduceState); i++ {
-		if m.reduceState[i] == 0 && countTask < req.MaxFileNum {
+	for i := 0; i < m.nReduce; i++ {
+		if m.reduceState[i] == 0 && countTask < request.MaxFileNum {
 			countTask++
-			resp.handId = append(resp.handId, i)
-			resp.fileNames = append(resp.fileNames, "reduceFile"+strconv.Itoa(i))
+			response.HandId = append(response.HandId, i)
+			response.FileNames = append(response.FileNames, "reduceFile"+strconv.Itoa(i))
+			fmt.Printf("中间的结果为：%v\n", response)
 			//TODO 定时器，如果10秒后，reduceState的状态还是1，那么就将状态改为0
 			m.reduceState[i] = 1
 		}
 	}
-	fmt.Printf("返回的结果为：%v\n", resp)
-	return nil
+	fmt.Printf("返回的结果为：%v\n", response)
 }
 
 //

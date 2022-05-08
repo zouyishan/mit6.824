@@ -6,6 +6,9 @@ package mr
 // remember to capitalize all names.
 //
 import (
+	"bytes"
+	"encoding/gob"
+	"io"
 	"os"
 	"strconv"
 )
@@ -59,11 +62,47 @@ type ReduceResponse struct {
 	IsEnd bool
 	// 要处理的磁盘文件，实际就是1个
 	// 论文默认是1，这里留作扩展
-	fileNames []string
-	// 由于是但机多进程，所以这里存的是所有worker成功的pid的目录
-	ids []int
+	FileNames []string
+	// 由于是单机多进程，所以这里存的是所有worker成功的pid的目录
+	Ids []int
 	// 这次ok的ID
-	handId []int
+	HandId []int
+}
+
+// ToJSONResponse 为什么会有这个呢？当然是为了兼容go那奇怪的不能传递数组啊
+type ToJSONResponse struct {
+	JsonString string
+}
+
+func Encode(data interface{}) *bytes.Buffer {
+	var buf bytes.Buffer
+	enc := gob.NewEncoder(&buf)
+	enc.Encode(data)
+	return &buf
+}
+
+func MapResponseDecode(data interface{}) *MapResponse {
+	d := data.(io.Reader)
+	dec := gob.NewDecoder(d)
+	var res MapResponse
+	dec.Decode(&res)
+	return &res
+}
+
+func MapRequestDecode(data interface{}) *MapRequest {
+	d := data.(io.Reader)
+	dec := gob.NewDecoder(d)
+	var res MapRequest
+	dec.Decode(&res)
+	return &res
+}
+
+func ReduceResponseDecode(data interface{}) *ReduceResponse {
+	d := data.(io.Reader)
+	dec := gob.NewDecoder(d)
+	var res ReduceResponse
+	dec.Decode(&res)
+	return &res
 }
 
 // Add your RPC definitions here.
