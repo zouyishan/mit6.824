@@ -58,5 +58,35 @@ mapf, reducef := loadPlugin(os.Args[1])
 
 worker通过RPC拉取任务，然后执行这些任务，输出一个或多个文件。
 
+### go的垃圾rpc
+垃圾的第一点：response放到参数里面，什么意思？语意是不是有点问题？
+```go
+func call(rpcname string, args interface{}, reply interface{}) bool {
+    // ....
+	err = c.Call(rpcname, args, reply)
+	// ....
+}
+```
+垃圾的第二点：请求结构体和响应结构体序列化要求不明确。
+
+代码中的请求和响应结构体:
+```go
+type MapRequest struct {
+    // ...
+    Handled []string
+}
+type ReduceResponse struct {
+	// ...
+	fileNames []string
+	ids []int
+	handId []int
+}
+```
+request里面有数组是可以被服务端正常解析，但是response里面的数组即使服务端有值，客户端也响应不到。
+
+垃圾第三点：没有序列化丝毫没有提示，Java中会给出明确提示。go中只是返回值为空，没报任何错，极大增加开发者找bug难度。
+
+垃圾第四点：官方文档丝毫没有给出此类提示，只有一个简单的int样例，我觉得官方文档应该给出可能遇到的所有bug的解释。
+
 
 
