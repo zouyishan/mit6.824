@@ -23,20 +23,47 @@ type ExampleReply struct {
 	Y int
 }
 
+type MapRequest struct {
+	// 由于是单机多进程worker进程的标识是pid
+	Id int
+	// worker最大的文件请求数，默认为1。
+	// 论文默认是1，这里留作扩展
+	MaxFileNum int
+	// 处理完的文件
+	Handled []string
+}
+
 type MapResponse struct {
-	// 是否已经处理完了。
+	// master上的map任务是否已经处理完了。
 	IsEnd bool
 	// 可能和MaxFileNum请求的数量不一样。
 	// 因为没有被mapreduce的文件没有那么多了。
 	// 也可能为null，但是IsEnd没有被标记为true之前，还是要请求。
 	ContentMap map[string]string
+	// 一共要分为多少个区域
+	NReduce int
 }
 
-type MapRequest struct {
-	// 最大的文件请求数，默认为2。
+type ReduceRequest struct {
+	// worker进程标记
+	Id int
+	// worker最大的文件处理数, 默认为1。
+	// 论文默认是1，这里留作扩展
 	MaxFileNum int
-	// 处理完的文件
-	Handled []string
+	// 处理完的文件Id
+	HandleID []int
+}
+
+type ReduceResponse struct {
+	// master上的reduce任务是否已经处理完了
+	IsEnd bool
+	// 要处理的磁盘文件，实际就是1个
+	// 论文默认是1，这里留作扩展
+	fileNames []string
+	// 由于是但机多进程，所以这里存的是所有worker成功的pid的目录
+	ids []int
+	// 这次ok的ID
+	handId []int
 }
 
 // Add your RPC definitions here.

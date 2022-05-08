@@ -1,6 +1,8 @@
 # Lab1
 
 实验指导手册：https://pdos.csail.mit.edu/6.824/labs/lab-mr.html
+
+主目录上放置了mapreduce的论文
 ## 单机mapreduce
 ```bash
 cd src/main
@@ -55,4 +57,6 @@ mapf, reducef := loadPlugin(os.Args[1])
 > The workers will talk to the coordinator via RPC. Each worker process will ask the coordinator for a task, read the task's input from one or more files, execute the task, and write the task's output to one or more files.
 
 worker通过RPC拉取任务，然后执行这些任务，输出一个或多个文件。
+
+
 
