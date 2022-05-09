@@ -6,9 +6,6 @@ package mr
 // remember to capitalize all names.
 //
 import (
-	"bytes"
-	"encoding/gob"
-	"io"
 	"os"
 	"strconv"
 )
@@ -25,6 +22,8 @@ type ExampleArgs struct {
 type ExampleReply struct {
 	Y int
 }
+
+// Add your RPC definitions here.
 
 type MapRequest struct {
 	// 由于是单机多进程worker进程的标识是pid
@@ -68,44 +67,6 @@ type ReduceResponse struct {
 	// 这次ok的ID
 	HandId []int
 }
-
-// ToJSONResponse 为什么会有这个呢？当然是为了兼容go那奇怪的不能传递数组啊
-type ToJSONResponse struct {
-	JsonString string
-}
-
-func Encode(data interface{}) *bytes.Buffer {
-	var buf bytes.Buffer
-	enc := gob.NewEncoder(&buf)
-	enc.Encode(data)
-	return &buf
-}
-
-func MapResponseDecode(data interface{}) *MapResponse {
-	d := data.(io.Reader)
-	dec := gob.NewDecoder(d)
-	var res MapResponse
-	dec.Decode(&res)
-	return &res
-}
-
-func MapRequestDecode(data interface{}) *MapRequest {
-	d := data.(io.Reader)
-	dec := gob.NewDecoder(d)
-	var res MapRequest
-	dec.Decode(&res)
-	return &res
-}
-
-func ReduceResponseDecode(data interface{}) *ReduceResponse {
-	d := data.(io.Reader)
-	dec := gob.NewDecoder(d)
-	var res ReduceResponse
-	dec.Decode(&res)
-	return &res
-}
-
-// Add your RPC definitions here.
 
 // Cook up a unique-ish UNIX-domain socket name
 // in /var/tmp, for the master.
